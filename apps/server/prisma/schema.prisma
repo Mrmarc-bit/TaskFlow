@@ -1,0 +1,253 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id                Int                @id @default(autoincrement())
+  email             String             @unique
+  passwordHash      String             @map("password_hash")
+  firstName         String             @map("first_name")
+  lastName          String             @map("last_name")
+  avatarUrl         String?            @map("avatar_url")
+  roleId            Int                @map("role_id")
+  role              Role               @relation(fields: [roleId], references: [id])
+  createdTasks      Task[]             @relation("TaskCreator")
+  assignedTasks     Task[]             @relation("TaskAssignee")
+  categories        Category[]
+  tags              Tag[]
+  attachments       Attachment[]
+  comments          Comment[]
+  activityLogs      ActivityLog[]
+  refreshTokens     RefreshToken[]
+  settings          UserSetting?
+  pushSubscriptions PushSubscription[]
+  notifications     Notification[]
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id              Int      @id @default(autoincrement())
+  tokenHash       String   @unique @map("token_hash")
+  userId          Int      @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt       DateTime @map("expires_at")
+  revoked         Boolean  @default(false)
+  replacedByToken String?  @map("replaced_by_token")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("refresh_tokens")
+}
+
+model UserSetting {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @unique @map("user_id")
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme              String   @default("SYSTEM") // LIGHT | DARK | SYSTEM
+  timezone           String   @default("UTC")
+  language           String   @default("en")
+  emailNotifications Boolean  @default(true) @map("email_notifications")
+  pushNotifications  Boolean  @default(true) @map("push_notifications")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("user_settings")
+}
+
+model Category {
+  id             Int            @id @default(autoincrement())
+  name           String
+  description    String?
+  color          String
+  userId         Int            @map("user_id")
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskCategories TaskCategory[]
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  @@unique([userId, name])
+  @@map("categories")
+}
+
+model TaskCategory {
+  taskId     Int      @map("task_id")
+  categoryId Int      @map("category_id")
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, categoryId])
+  @@map("task_categories")
+}
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String
+  color     String
+  userId    Int       @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskTags  TaskTag[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, name])
+  @@map("tags")
+}
+
+model TaskTag {
+  taskId Int  @map("task_id")
+  tagId  Int  @map("tag_id")
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@map("task_tags")
+}
+
+model Task {
+  id               Int            @id @default(autoincrement())
+  title            String
+  description      String?        @db.Text
+  priority         String         @default("MEDIUM") // LOW | MEDIUM | HIGH | URGENT
+  status           String         @default("TODO") // BACKLOG | TODO | IN_PROGRESS | IN_REVIEW | DONE | ARCHIVED
+  creatorId        Int            @map("creator_id")
+  creator          User           @relation("TaskCreator", fields: [creatorId], references: [id])
+  assigneeId       Int?           @map("assignee_id")
+  assignee         User?          @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  deadline         DateTime?
+  reminderAt       DateTime?      @map("reminder_at")
+  estimatedMinutes Int?           @map("estimated_minutes")
+  spentMinutes     Int?           @map("spent_minutes")
+  progress         Int            @default(0)
+  colorLabel       String?        @map("color_label")
+  parentId         Int?           @map("parent_id")
+  parent           Task?          @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  subTasks         Task[]         @relation("SubTasks")
+  isDeleted        Boolean        @default(false) @map("is_deleted")
+  deletedAt        DateTime?      @map("deleted_at")
+  completedAt      DateTime?      @map("completed_at")
+  taskCategories   TaskCategory[]
+  taskTags         TaskTag[]
+  attachments      Attachment[]
+  comments         Comment[]
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  @@index([status, assigneeId])
+  @@index([isDeleted, status])
+  @@map("tasks")
+}
+
+model Attachment {
+  id         Int      @id @default(autoincrement())
+  taskId     Int      @map("task_id")
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fileName   String   @map("file_name")
+  filePath   String   @map("file_path")
+  fileSize   Int      @map("file_size")
+  mimeType   String   @map("mime_type")
+  uploadedBy Int      @map("uploaded_by")
+  user       User     @relation(fields: [uploadedBy], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("attachments")
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  taskId    Int       @map("task_id")
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    Int       @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String    @db.Text
+  parentId  Int?      @map("parent_id")
+  parent    Comment?  @relation("CommentThread", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  replies   Comment[] @relation("CommentThread")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([taskId, createdAt])
+  @@map("comments")
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionType  String   @map("action_type") // CREATE | UPDATE | DELETE | STATUS_CHANGE
+  entityType  String   @map("entity_type") // TASK | COMMENT | ATTACHMENT
+  entityId    Int      @map("entity_id")
+  description String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}
+
+model Notification {
+  id         Int       @id @default(autoincrement())
+  userId     Int       @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  message    String
+  type       String    // REMINDER | DEADLINE | ASSIGNED | COMPLETED | COMMENT
+  isRead     Boolean   @default(false) @map("is_read")
+  readAt     DateTime? @map("read_at")
+  entityType String?   @map("entity_type")
+  entityId   Int?      @map("entity_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("push_subscriptions")
+}

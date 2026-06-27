@@ -1,0 +1,18 @@
+{
+  "short_name": "TaskFlow",
+  "name": "TaskFlow Modern Workspace",
+  "description": "A modern enterprise Task Management Progressive Web Application",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

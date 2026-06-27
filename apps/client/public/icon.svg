@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+  {/* Modern Rounded Icon Grid Canvas */}
+  <rect width="512" height="512" rx="120" fill="url(#grad)" />
+  {/* Intersecting task lines motif */}
+  <path d="M160 260 l60 60 l140 -140" fill="none" stroke="#ffffff" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M160 335 l60 60 l140 -140" fill="none" stroke="#ffffff" stroke-opacity="0.3" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
