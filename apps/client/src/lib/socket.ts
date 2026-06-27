@@ -5,7 +5,8 @@ let socket: Socket | null = null;
 export const getSocket = (): Socket => {
   if (!socket) {
     const token = localStorage.getItem('taskflow-token');
-    socket = io('http://localhost:3000', {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    socket = io(apiUrl, {
       auth: { token },
       autoConnect: false,
     });
