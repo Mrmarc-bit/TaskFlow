@@ -1,12 +1,14 @@
-const STATIC_CACHE = 'taskflow-static-v4';
-const DYNAMIC_CACHE = 'taskflow-dynamic-v4';
+const STATIC_CACHE = 'taskflow-static-v5';
+const DYNAMIC_CACHE = 'taskflow-dynamic-v5';
 
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/icon.svg',
+  '/icon.png',
   '/manifest.json',
 ];
+
 
 // 1. Install – pre-cache app shell
 self.addEventListener('install', function (event) {
