@@ -10,28 +10,34 @@
   "theme_color": "#6366f1",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
+      "src": "https://cdn-icons-png.flaticon.com/512/2098/2098402.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon.svg",
+      "src": "https://cdn-icons-png.flaticon.com/512/2098/2098402.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2098/2098402.png",
       "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1280&auto=format&fit=crop&q=60",
+      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1280&h=720&fit=crop&q=60",
       "sizes": "1280x720",
       "type": "image/webp",
       "form_factor": "wide",
       "label": "TaskFlow Dashboard Desktop"
     },
     {
-      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=720&auto=format&fit=crop&q=60",
+      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=720&h=1280&fit=crop&q=60",
       "sizes": "720x1280",
       "type": "image/webp",
       "form_factor": "narrow",
@@ -39,5 +45,6 @@
     }
   ]
 }
+
 
 
