@@ -3,15 +3,17 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and prisma schema
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
 # Install all dependencies (including devDeps for build)
 RUN npm ci
 
 # Generate Prisma client
-RUN npx prisma generate
+# Prisma v7: uses prisma.config.ts + adapter, no DATABASE_URL needed at generate time
+RUN npx prisma generate --config prisma.config.ts || npx prisma generate
 
 # Copy source and build
 COPY . .
@@ -22,15 +24,16 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and prisma config
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
 # Install production dependencies only
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Generate Prisma client for production
-RUN npx prisma generate
+RUN npx prisma generate --config prisma.config.ts || npx prisma generate
 
 # Copy built output from builder stage
 COPY --from=builder /app/dist ./dist
