@@ -3,16 +3,15 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files and prisma schema
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
+COPY tsconfig*.json ./
 
-# Install all dependencies (including devDeps for build)
+# Install all deps (needed for build + prisma generate)
 RUN npm ci
 
-# Generate Prisma client
-# Prisma v7: uses prisma.config.ts + adapter, no DATABASE_URL needed at generate time
+# Generate Prisma client (Prisma v7 adapter style)
 RUN npx prisma generate --config prisma.config.ts || npx prisma generate
 
 # Copy source and build
@@ -24,24 +23,23 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy package files and prisma config
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
+COPY tsconfig*.json ./
 
-# Install production dependencies only
-RUN npm ci --omit=dev
+# Install all deps (ts-node needed for seed on first run)
+RUN npm ci
 
-# Generate Prisma client for production
+# Generate Prisma client
 RUN npx prisma generate --config prisma.config.ts || npx prisma generate
 
-# Copy built output from builder stage
+# Copy compiled app
 COPY --from=builder /app/dist ./dist
 
-# Create uploads directory
 RUN mkdir -p uploads
 
 EXPOSE 3000
 
-# Run migrations then start app
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+# Migrate → Seed (idempotent, safe to run every deploy) → Start
+CMD ["sh", "-c", "npx prisma migrate deploy && npx ts-node prisma/seed.ts && node dist/main"]
