@@ -87,19 +87,28 @@ self.addEventListener('fetch', function (event) {
       if (cachedResponse) {
         return cachedResponse;
       }
-      return fetch(request).then(function (response) {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+      return fetch(request)
+        .then(function (response) {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+          var responseToCache = response.clone();
+          caches.open(STATIC_CACHE).then(function (cache) {
+            cache.put(request, responseToCache);
+          });
           return response;
-        }
-        var responseToCache = response.clone();
-        caches.open(STATIC_CACHE).then(function (cache) {
-          cache.put(request, responseToCache);
+        })
+        .catch(function (err) {
+          // SPA Offline Fallback: If offline and requesting a route, return index.html from cache
+          if (request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          throw err;
         });
-        return response;
-      });
     })
   );
 });
+
 
 // 4. Push – Handle incoming Web Push notification from server
 self.addEventListener('push', function (event) {
