@@ -42,4 +42,4 @@ RUN mkdir -p uploads
 EXPOSE 3000
 
 # Migrate → Seed (idempotent, safe to run every deploy) → Start
-CMD ["sh", "-c", "npx prisma migrate deploy && npx ts-node prisma/seed.ts && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx ts-node prisma/seed.ts && node dist/src/main"]
