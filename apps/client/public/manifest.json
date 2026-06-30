@@ -21,6 +21,23 @@
       "type": "image/svg+xml",
       "purpose": "maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1280&auto=format&fit=crop&q=60",
+      "sizes": "1280x720",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "TaskFlow Dashboard Desktop"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=720&auto=format&fit=crop&q=60",
+      "sizes": "720x1280",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "TaskFlow Dashboard Mobile"
+    }
   ]
 }
+
 
