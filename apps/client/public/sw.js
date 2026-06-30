@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'taskflow-static-v3';
-const DYNAMIC_CACHE = 'taskflow-dynamic-v3';
+const STATIC_CACHE = 'taskflow-static-v4';
+const DYNAMIC_CACHE = 'taskflow-dynamic-v4';
 
 const PRECACHE_ASSETS = [
   '/',
