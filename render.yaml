@@ -22,6 +22,12 @@ services:
         value: 15m
       - key: JWT_REFRESH_EXPIRATION
         value: 7d
+      - key: VAPID_SUBJECT
+        value: mailto:support@taskflow.dev
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
 
   # 2. Frontend Static Site
   - type: web

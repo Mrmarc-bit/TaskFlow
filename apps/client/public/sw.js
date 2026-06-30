@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'taskflow-static-v2';
-const DYNAMIC_CACHE = 'taskflow-dynamic-v2';
+const STATIC_CACHE = 'taskflow-static-v3';
+const DYNAMIC_CACHE = 'taskflow-dynamic-v3';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -97,6 +97,69 @@ self.addEventListener('fetch', function (event) {
         });
         return response;
       });
+    })
+  );
+});
+
+// 4. Push – Handle incoming Web Push notification from server
+self.addEventListener('push', function (event) {
+  var data = {};
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'TaskFlow', body: event.data.text() };
+    }
+  }
+
+  var title = data.title || 'TaskFlow Notification';
+  var options = {
+    body: data.body || 'You have a new update.',
+    icon: data.icon || '/icon.svg',
+    badge: data.badge || '/icon.svg',
+    tag: data.tag || 'taskflow-notification',
+    renotify: true,
+    requireInteraction: false,
+    data: {
+      url: data.url || '/',
+    },
+    actions: [
+      { action: 'open', title: 'Open TaskFlow' },
+      { action: 'dismiss', title: 'Dismiss' },
+    ],
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// 5. Notification Click – Navigate to app when notification is clicked
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+
+  if (event.action === 'dismiss') return;
+
+  var targetUrl = (event.notification.data && event.notification.data.url) || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+      // If a window is already open, focus it and navigate
+      for (var i = 0; i < clientList.length; i++) {
+        var client = clientList[i];
+        if ('focus' in client) {
+          client.focus();
+          if ('navigate' in client) {
+            client.navigate(targetUrl);
+          }
+          return;
+        }
+      }
+      // Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
     })
   );
 });

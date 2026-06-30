@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Shield, Moon, Sun, Monitor } from 'lucide-react';
+import { User, Shield, Moon, Sun, Monitor, Bell, BellOff } from 'lucide-react';
 import { api } from '../../lib/axios';
+import {
+  subscribeToPush,
+  unsubscribeFromPush,
+  isPushSubscribed,
+  getNotificationPermission,
+} from '../../lib/push';
 import { Card } from '../../components/card';
 import { Input } from '../../components/input';
 import { Button } from '../../components/button';
@@ -15,6 +21,48 @@ export const SettingsPage: React.FC = () => {
   const [lastName, setLastName] = useState('');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Push notification states
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
+
+  // Check push subscription status on mount
+  useEffect(() => {
+    isPushSubscribed().then(setPushSubscribed);
+    setPushPermission(getNotificationPermission());
+  }, []);
+
+  const handleTogglePush = async () => {
+    setPushLoading(true);
+    try {
+      if (pushSubscribed) {
+        const ok = await unsubscribeFromPush();
+        if (ok) {
+          setPushSubscribed(false);
+          setSuccessMsg('Push notifications disabled.');
+          setTimeout(() => setSuccessMsg(null), 3000);
+        }
+      } else {
+        const ok = await subscribeToPush();
+        if (ok) {
+          setPushSubscribed(true);
+          setSuccessMsg('Push notifications enabled! You will receive browser alerts.');
+          setTimeout(() => setSuccessMsg(null), 4000);
+        } else {
+          setErrorMsg(
+            pushPermission === 'denied'
+              ? 'Notification permission is blocked. Please allow it from your browser settings.'
+              : 'Failed to enable push notifications.',
+          );
+          setTimeout(() => setErrorMsg(null), 4000);
+        }
+      }
+      setPushPermission(getNotificationPermission());
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   // 1. Fetch current profile
   const { data: profile } = useQuery<any>({
@@ -167,6 +215,65 @@ export const SettingsPage: React.FC = () => {
             <span>System</span>
           </button>
         </div>
+      </Card>
+
+      {/* Push Notification settings card */}
+      <Card className="p-6 border-slate-500/10 dark:border-white/5 flex flex-col gap-4">
+        <h3 className="font-bold font-display text-sm flex items-center gap-2">
+          <Bell size={16} className="text-indigo-500" />
+          <span>Push Notifications</span>
+        </h3>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Enable native browser push notifications to receive real-time alerts about task updates,
+          deadlines, and assignments — even when TaskFlow is not open.
+        </p>
+
+        {/* Permission blocked warning */}
+        {pushPermission === 'denied' && (
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400">
+            <BellOff size={14} className="mt-0.5 shrink-0" />
+            <span>
+              Notification permission is <strong>blocked</strong> in your browser. To enable push
+              alerts, please allow notifications for this site in your browser settings.
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-4 pt-1">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-semibold">
+              {pushSubscribed ? 'Browser push enabled' : 'Browser push disabled'}
+            </span>
+            <span className="text-[11px] text-slate-500">
+              {pushSubscribed
+                ? 'You will receive system notifications for tasks and reminders.'
+                : 'Enable to get alerts outside the app.'}
+            </span>
+          </div>
+
+          {/* Toggle switch */}
+          <button
+            id="push-notification-toggle"
+            onClick={handleTogglePush}
+            disabled={pushLoading || pushPermission === 'denied'}
+            aria-pressed={pushSubscribed}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none shrink-0 ${
+              pushSubscribed ? 'bg-brand-500' : 'bg-slate-300 dark:bg-slate-700'
+            } ${pushPermission === 'denied' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                pushSubscribed ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {pushLoading && (
+          <p className="text-[11px] text-slate-400 animate-pulse">
+            {pushSubscribed ? 'Disabling push notifications...' : 'Requesting permission and subscribing...'}
+          </p>
+        )}
       </Card>
 
       {/* Security & Token scopes info card */}
