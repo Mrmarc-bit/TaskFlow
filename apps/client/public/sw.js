@@ -1,11 +1,12 @@
-const STATIC_CACHE = 'taskflow-static-v5';
-const DYNAMIC_CACHE = 'taskflow-dynamic-v5';
+const STATIC_CACHE = 'taskflow-static-v6';
+const DYNAMIC_CACHE = 'taskflow-dynamic-v6';
 
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/icon.svg',
-  '/icon.png',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
   '/manifest.json',
 ];
 
