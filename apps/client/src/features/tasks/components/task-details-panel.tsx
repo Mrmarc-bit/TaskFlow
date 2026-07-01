@@ -26,6 +26,19 @@ export const TaskDetailsPanel: React.FC<TaskDetailsPanelProps> = ({
   const [replyToId, setReplyToId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [subTaskText, setSubTaskText] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Mutation to delete task
+  const deleteTaskMutation = useMutation({
+    mutationFn: async () => {
+      await api.delete(`/tasks/${taskId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardAnalytics'] });
+      onClose();
+    },
+  });
 
   // 1. Fetch detailed task metadata
   const { data: task, isLoading } = useQuery<any>({
@@ -273,17 +286,55 @@ export const TaskDetailsPanel: React.FC<TaskDetailsPanelProps> = ({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full max-w-lg bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 z-50 flex flex-col h-full shadow-2xl"
+            className="relative fixed inset-y-0 right-0 w-full max-w-lg bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 z-50 flex flex-col h-full shadow-2xl"
           >
+            {/* Confirmation Overlay inside Drawer */}
+            {showDeleteConfirm && (
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-6">
+                <div className="bg-white dark:bg-slate-900 border border-slate-500/15 dark:border-white/5 p-6 rounded-2xl shadow-xl w-full max-w-sm flex flex-col gap-4">
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">Delete Task</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Are you sure you want to delete this task? This action will archive/soft-delete it and cannot be undone easily.
+                  </p>
+                  <div className="flex justify-end gap-2.5 mt-2">
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="px-3 py-1.5 rounded-lg border border-slate-500/10 hover:bg-slate-500/5 text-xs font-semibold cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => deleteTaskMutation.mutate()}
+                      disabled={deleteTaskMutation.isPending}
+                      className="px-3 py-1.5 rounded-lg bg-danger-accent hover:bg-danger-accent/90 text-white text-xs font-semibold cursor-pointer disabled:opacity-50"
+                    >
+                      {deleteTaskMutation.isPending ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Header */}
             <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 shrink-0">
               <span className="font-display font-bold text-base">Task Details</span>
-              <button
-                onClick={onClose}
-                className="p-1 rounded-lg hover:bg-slate-500/10 text-slate-400 cursor-pointer"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                {!isLoading && (
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="p-1.5 rounded-lg hover:bg-danger-accent/10 text-danger-accent cursor-pointer"
+                    title="Delete Task"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="p-1 rounded-lg hover:bg-slate-500/10 text-slate-400 cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Inner Content Area */}

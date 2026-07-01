@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Shield, Moon, Sun, Monitor, Bell, BellOff } from 'lucide-react';
+import { User, Shield, Moon, Sun, Monitor, Bell, BellOff, FolderKanban, Tag as TagIcon, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { api } from '../../lib/axios';
 import {
   subscribeToPush,
@@ -61,6 +61,161 @@ export const SettingsPage: React.FC = () => {
       setPushPermission(getNotificationPermission());
     } finally {
       setPushLoading(false);
+    }
+  };
+
+  // --- Categories CRUD State & Mutations ---
+  const { data: categories = [] } = useQuery<any[]>({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const response = await api.get('/categories');
+      return response.data.data;
+    },
+  });
+
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatColor, setNewCatColor] = useState('#6366f1');
+  const [newCatDesc, setNewCatDesc] = useState('');
+  const [editingCatId, setEditingCatId] = useState<number | null>(null);
+  const [editCatName, setEditCatName] = useState('');
+  const [editCatColor, setEditCatColor] = useState('#6366f1');
+  const [editCatDesc, setEditCatDesc] = useState('');
+
+  const createCategoryMutation = useMutation({
+    mutationFn: async (data: { name: string; color: string; description?: string }) => {
+      const response = await api.post('/categories', data);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      setNewCatName('');
+      setNewCatDesc('');
+      setSuccessMsg('Category created successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || 'Failed to create category');
+      setTimeout(() => setErrorMsg(null), 3000);
+    },
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { name: string; color: string; description?: string } }) => {
+      const response = await api.put(`/categories/${id}`, data);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      setEditingCatId(null);
+      setSuccessMsg('Category updated successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || 'Failed to update category');
+      setTimeout(() => setErrorMsg(null), 3000);
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/categories/${id}`);
+    },
+    onSuccess: () => {
+      setSuccessMsg('Category deleted successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || 'Failed to delete category');
+      setTimeout(() => setErrorMsg(null), 3000);
+    },
+  });
+
+  // --- Tags CRUD State & Mutations ---
+  const { data: tags = [] } = useQuery<any[]>({
+    queryKey: ['tags'],
+    queryFn: async () => {
+      const response = await api.get('/tags');
+      return response.data.data;
+    },
+  });
+
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagColor, setNewTagColor] = useState('#ec4899');
+
+  const createTagMutation = useMutation({
+    mutationFn: async (data: { name: string; color: string }) => {
+      const response = await api.post('/tags', data);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      setNewTagName('');
+      setSuccessMsg('Tag created successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || 'Failed to create tag');
+      setTimeout(() => setErrorMsg(null), 3000);
+    },
+  });
+
+  const deleteTagMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/tags/${id}`);
+    },
+    onSuccess: () => {
+      setSuccessMsg('Tag deleted successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || 'Failed to delete tag');
+      setTimeout(() => setErrorMsg(null), 3000);
+    },
+  });
+
+  const handleStartEditCategory = (cat: any) => {
+    setEditingCatId(cat.id);
+    setEditCatName(cat.name);
+    setEditCatColor(cat.color);
+    setEditCatDesc(cat.description || '');
+  };
+
+  const handleSaveEditCategory = (id: number) => {
+    if (editCatName.trim()) {
+      updateCategoryMutation.mutate({
+        id,
+        data: {
+          name: editCatName.trim(),
+          color: editCatColor,
+          description: editCatDesc.trim() || undefined,
+        },
+      });
+    }
+  };
+
+  const handleCreateCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newCatName.trim()) {
+      createCategoryMutation.mutate({
+        name: newCatName.trim(),
+        color: newCatColor,
+        description: newCatDesc.trim() || undefined,
+      });
+    }
+  };
+
+  const handleCreateTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTagName.trim()) {
+      createTagMutation.mutate({
+        name: newTagName.trim(),
+        color: newTagColor,
+      });
     }
   };
 
@@ -274,6 +429,230 @@ export const SettingsPage: React.FC = () => {
             {pushSubscribed ? 'Disabling push notifications...' : 'Requesting permission and subscribing...'}
           </p>
         )}
+      </Card>
+
+      {/* Category Management Card */}
+      <Card className="p-6 border-slate-500/10 dark:border-white/5 flex flex-col gap-4">
+        <h3 className="font-bold font-display text-sm flex items-center gap-2">
+          <FolderKanban size={16} className="text-brand-500" />
+          <span>Task Categories</span>
+        </h3>
+        <p className="text-xs text-slate-500">Create, edit, and delete workspace categories to organize tasks.</p>
+
+        {/* Categories List */}
+        <div className="flex flex-col gap-2.5 max-h-60 overflow-y-auto pr-1">
+          {categories.length === 0 ? (
+            <p className="text-xs text-slate-400 italic">No categories found. Create one below.</p>
+          ) : (
+            categories.map((cat) => (
+              <div
+                key={cat.id}
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-500/5 dark:bg-white/[0.01] border border-slate-500/10 dark:border-white/5 gap-3"
+              >
+                {editingCatId === cat.id ? (
+                  <div className="flex-1 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                    <input
+                      type="text"
+                      value={editCatName}
+                      onChange={(e) => setEditCatName(e.target.value)}
+                      className="px-2.5 py-1 border border-slate-500/10 rounded-lg bg-slate-500/5 outline-none text-xs flex-1 text-slate-900 dark:text-white"
+                      placeholder="Category name"
+                    />
+                    <input
+                      type="color"
+                      value={editCatColor}
+                      onChange={(e) => setEditCatColor(e.target.value)}
+                      className="w-8 h-8 rounded-lg border-0 cursor-pointer p-0 shrink-0"
+                      title="Choose category color"
+                    />
+                    <input
+                      type="text"
+                      value={editCatDesc}
+                      onChange={(e) => setEditCatDesc(e.target.value)}
+                      className="px-2.5 py-1 border border-slate-500/10 rounded-lg bg-slate-500/5 outline-none text-xs flex-1 text-slate-900 dark:text-white"
+                      placeholder="Description (optional)"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                        {cat.name}
+                      </span>
+                    </div>
+                    {cat.description && (
+                      <p className="text-[10px] text-slate-500 truncate pl-5">
+                        {cat.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {editingCatId === cat.id ? (
+                    <>
+                      <button
+                        onClick={() => handleSaveEditCategory(cat.id)}
+                        disabled={updateCategoryMutation.isPending}
+                        className="p-1 rounded-lg hover:bg-success-accent/15 text-success-accent cursor-pointer"
+                        title="Save Changes"
+                      >
+                        <Check size={14} />
+                      </button>
+                      <button
+                        onClick={() => setEditingCatId(null)}
+                        className="p-1 rounded-lg hover:bg-slate-500/15 text-slate-400 cursor-pointer"
+                        title="Cancel"
+                      >
+                        <X size={14} />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleStartEditCategory(cat)}
+                        className="p-1 rounded-lg hover:bg-slate-500/15 text-slate-400 cursor-pointer"
+                        title="Edit Category"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete category "${cat.name}"? Tasks in this category will be uncategorized.`)) {
+                            deleteCategoryMutation.mutate(cat.id);
+                          }
+                        }}
+                        disabled={deleteCategoryMutation.isPending}
+                        className="p-1 rounded-lg hover:bg-danger-accent/15 text-danger-accent cursor-pointer disabled:opacity-50"
+                        title="Delete Category"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Add Category Form */}
+        <form onSubmit={handleCreateCategory} className="flex flex-col gap-3.5 pt-3 border-t border-slate-500/10 dark:border-white/5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Add New Category</span>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <Input
+                placeholder="Category name (e.g. Frontend)"
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                className="py-1.5 text-xs"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">Color:</span>
+              <input
+                type="color"
+                value={newCatColor}
+                onChange={(e) => setNewCatColor(e.target.value)}
+                className="w-9 h-9 rounded-xl border-0 cursor-pointer p-0 shrink-0"
+              />
+            </div>
+          </div>
+          <Input
+            placeholder="Category description (optional)"
+            value={newCatDesc}
+            onChange={(e) => setNewCatDesc(e.target.value)}
+            className="py-1.5 text-xs"
+          />
+          <Button
+            type="submit"
+            variant="primary"
+            className="self-start gap-1.5 py-1.5 px-3.5 text-xs h-auto"
+            disabled={createCategoryMutation.isPending || !newCatName.trim()}
+          >
+            <Plus size={13} />
+            <span>{createCategoryMutation.isPending ? 'Adding...' : 'Add Category'}</span>
+          </Button>
+        </form>
+      </Card>
+
+      {/* Tag Management Card */}
+      <Card className="p-6 border-slate-500/10 dark:border-white/5 flex flex-col gap-4">
+        <h3 className="font-bold font-display text-sm flex items-center gap-2">
+          <TagIcon size={16} className="text-brand-500" />
+          <span>Task Tags</span>
+        </h3>
+        <p className="text-xs text-slate-500">Create and delete tags to label and highlight tasks.</p>
+
+        {/* Tags List */}
+        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-1">
+          {tags.length === 0 ? (
+            <p className="text-xs text-slate-400 italic">No tags found. Create one below.</p>
+          ) : (
+            tags.map((tag) => (
+              <div
+                key={tag.id}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold"
+                style={{
+                  color: tag.color,
+                  borderColor: `${tag.color}40`,
+                  backgroundColor: `${tag.color}10`,
+                }}
+              >
+                <span>{tag.name}</span>
+                <button
+                  onClick={() => {
+                    if (confirm(`Delete tag "${tag.name}"?`)) {
+                      deleteTagMutation.mutate(tag.id);
+                    }
+                  }}
+                  disabled={deleteTagMutation.isPending}
+                  className="hover:text-danger-accent cursor-pointer opacity-75 hover:opacity-100 disabled:opacity-50 shrink-0"
+                  title="Delete Tag"
+                >
+                  <X size={10} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Add Tag Form */}
+        <form onSubmit={handleCreateTag} className="flex flex-col gap-3.5 pt-3 border-t border-slate-500/10 dark:border-white/5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Add New Tag</span>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <Input
+                placeholder="Tag name (e.g. Bug, Research)"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                className="py-1.5 text-xs"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">Color:</span>
+              <input
+                type="color"
+                value={newTagColor}
+                onChange={(e) => setNewTagColor(e.target.value)}
+                className="w-9 h-9 rounded-xl border-0 cursor-pointer p-0 shrink-0"
+              />
+            </div>
+          </div>
+          <Button
+            type="submit"
+            variant="primary"
+            className="self-start gap-1.5 py-1.5 px-3.5 text-xs h-auto"
+            disabled={createTagMutation.isPending || !newTagName.trim()}
+          >
+            <Plus size={13} />
+            <span>{createTagMutation.isPending ? 'Adding...' : 'Add Tag'}</span>
+          </Button>
+        </form>
       </Card>
 
       {/* Security & Token scopes info card */}
