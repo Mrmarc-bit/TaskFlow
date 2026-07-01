@@ -172,9 +172,7 @@ export const DashboardLayout: React.FC = () => {
         {/* Brand / Logo header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
           <Link to="/dashboard" className="flex items-center gap-3 select-none">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-tr from-brand-500 to-sky-accent text-white">
-              <LayoutDashboard size={18} />
-            </div>
+            <img src="/icon.svg" className="w-8 h-8 rounded-lg object-contain shrink-0" alt="TaskFlow" />
             {sidebarOpen && (
               <span className="font-display font-bold text-lg bg-linear-to-r from-brand-500 to-sky-accent bg-clip-text text-transparent">
                 TaskFlow
@@ -423,9 +421,12 @@ export const DashboardLayout: React.FC = () => {
               className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 z-50 flex flex-col md:hidden"
             >
               <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
-                <span className="font-display font-bold text-lg bg-linear-to-r from-brand-500 to-sky-accent bg-clip-text text-transparent">
-                  TaskFlow
-                </span>
+                <div className="flex items-center gap-3">
+                  <img src="/icon.svg" className="w-8 h-8 rounded-lg object-contain shrink-0" alt="TaskFlow" />
+                  <span className="font-display font-bold text-lg bg-linear-to-r from-brand-500 to-sky-accent bg-clip-text text-transparent">
+                    TaskFlow
+                  </span>
+                </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-1 rounded-md hover:bg-white/5 text-slate-400 cursor-pointer"

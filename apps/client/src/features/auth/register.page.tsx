@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard } from 'lucide-react';
 import { Card } from '../../components/card';
 import { Input } from '../../components/input';
 import { Button } from '../../components/button';
@@ -49,9 +48,7 @@ export const RegisterPage: React.FC = () => {
   return (
     <Card className="shadow-2xl">
       <div className="flex flex-col items-center mb-8">
-        <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-linear-to-tr from-brand-500 to-sky-accent text-white mb-4">
-          <LayoutDashboard size={24} />
-        </div>
+        <img src="/icon.svg" className="w-12 h-12 rounded-2xl object-contain mb-4" alt="TaskFlow Logo" />
         <h2 className="text-2xl font-bold font-display tracking-tight text-white mb-1.5">
           Create account
         </h2>

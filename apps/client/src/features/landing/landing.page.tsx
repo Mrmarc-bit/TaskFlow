@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  LayoutDashboard, CheckSquare, Zap, Shield, Search,
+  CheckSquare, Zap, Shield, Search,
   ArrowRight, Activity, Users, Plus, Star, ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -73,9 +73,7 @@ export const LandingPage: React.FC = () => {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-500 flex items-center justify-center text-white shadow-sm shadow-violet-200">
-              <LayoutDashboard size={16} />
-            </div>
+            <img src="/icon.svg" className="w-8 h-8 rounded-lg object-contain" alt="TaskFlow" />
             <span className="font-bold text-base tracking-tight text-slate-900">TaskFlow</span>
           </Link>
 
@@ -370,9 +368,7 @@ export const LandingPage: React.FC = () => {
       <footer className="border-t border-slate-100 bg-slate-50 py-10">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-600 to-indigo-500 flex items-center justify-center text-white">
-              <LayoutDashboard size={12} />
-            </div>
+            <img src="/icon.svg" className="w-6 h-6 rounded-md object-contain" alt="TaskFlow" />
             <span className="font-semibold text-slate-600">TaskFlow</span>
           </div>
           <p>© {new Date().getFullYear()} TaskFlow. All rights reserved.</p>
